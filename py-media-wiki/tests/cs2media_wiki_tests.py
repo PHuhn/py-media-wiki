@@ -52,11 +52,16 @@ class MediawikiTests(unittest.TestCase):
         print(bld)
         self.assertEqual(bld, "'''" + label + "'''")
     #
+    def test_text_left_trim(self):
+        text = self.wiki.text_left_trim("\n   1\n   2\n   3\n   4\n")
+        self.assertEqual(text, "1\n2\n3\n4")
+    def test_text_left_trunc(self):
+        text = self.wiki.text_left_trunc("\n   1\n   2\n   3\n   4\n", 2)
+        self.assertEqual(text, "  1\n  2\n  3\n  4")
     def test_get_element_text_01(self):
         """ test method: process child assembly, making it a level 1 header. """
         member = ET.fromstring(self.summary01)
-        expected = """The namespace contains a
-        collection of static helper methods."""
+        expected = """The namespace contains a\ncollection of static helper methods."""
         txt = self.wiki.get_element_text(member.find('summary'))
         self.assertEqual(txt, expected)
     #
@@ -69,8 +74,7 @@ class MediawikiTests(unittest.TestCase):
     #
     def test_get_element_text_03(self):
         """ test method: process child assembly, making it a level 1 header. """
-        expected = """The namespace contains a
-        collection of static helper methods."""
+        expected = """The namespace contains a\ncollection of static helper methods."""
         member = ET.fromstring(self.summary01)
         txt = self.wiki.get_element_text(member.find('summary'))
         print(txt)

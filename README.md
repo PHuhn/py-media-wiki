@@ -19,7 +19,7 @@ To execute from the batch file, converting Library.xml as follows:
 Make sure the text is flush left except for code.  Code is indented two spaces.
 
 ### Wiki
-These Wiki pages were initialy created by the CS2Wiki.awk scripts with the library's XML file, and again regenerated with cs2media_wiki.py. The cs2media_wiki.py script got me 90% of the way to creating the MediaWiki file. Make sure the text is flush left except for code.
+These Wiki pages were initialy created by the CS2Wiki.awk scripts with the library's XML file, and again regenerated with cs2media_wiki.py. The cs2media_wiki.py script got me 95% of the way to creating the MediaWiki file.  Make sure the text is flush left except for code (which should be indented 2 spaces). Search for -code- in the conversion to verify that the '''code''' was converted corectly, then delete the -code- line.
 
 Check these Wiki pages for examples:
 

@@ -1,5 +1,6 @@
 """ module: Convert from .Net meta comments to Media Wiki """
 import sys as Sys
+import io as IO
 from defusedxml.ElementTree import parse
 from pathlib import Path
 # ============================================================================
@@ -69,6 +70,30 @@ class CS2MediaWiki():
         """ method: return the text with bold markup. """
         return "{0}{1}{0}".format(self.wiki_bold, text)
     #
+    def text_left_trim(self, text):
+        if text[0] == '\n':
+            text = text.lstrip('\n')
+        handle = IO.StringIO(text)
+        ret_text = ""
+        for line in handle:
+            ret_text += line.lstrip()
+        return ret_text.rstrip('\n')
+    #
+    def text_left_trunc(self, text, minus):
+        if text[0] == '\n':
+            text = text.lstrip('\n')
+        handle = IO.StringIO(text)
+        ret_text = ""
+        wsp_len = len(text) - (len(text.lstrip()) + minus)
+        whsp = " " * wsp_len
+        if wsp_len > 0:
+            for line in handle:
+                if whsp == line[:wsp_len]:
+                    ret_text += line[wsp_len:]
+        else:
+            ret_text = text
+        return ret_text.rstrip('\n')
+    #
     def get_element_text(self, element):
         """ method: recusively get an element's text.
         see: stackoverflow.com how-do-i-get-the-full-xml-or-html-content-of-an-element-using-elementtree
@@ -78,7 +103,7 @@ class CS2MediaWiki():
             if (subelement.tag == "see") or (subelement.tag == "seealso"):
                 text += self.get_element_text(subelement)
         text += element.tail or ''
-        return text.rstrip('\n').rstrip().lstrip('\n').lstrip()
+        return self.text_left_trim(text)
     #
     def root(self, root):
         """ method: process child assembly, making it a level 1 header. """
@@ -348,8 +373,10 @@ class CS2MediaWiki():
         # </code>
         ret = 0
         if elem.tag == 'code':
-            print("{0}{1}\n{2}".format(self.wiki_code_start, elem.text, self.wiki_code_end))
-            print("")
+            # print("{0}\n{1}\n{2}".format(
+            #     self.wiki_code_start, self.text_left_trunc(elem.text, 2), self.wiki_code_end))
+            print(self.wiki_code_start)
+            print(self.text_left_trunc(elem.text, 2))
             ret = 1
         return ret
     #
@@ -435,13 +462,16 @@ if __name__ == '__main__':
     else:
         print(USAGE)
         exit(0)
-    INPUT_FILE = Path(FILE)
-    if INPUT_FILE.exists():
-        ET = parse(FILE)
-        ROOT = ET.getroot()
-        if ROOT.tag == 'doc':
-            WIKI.root(ROOT)
+    if FILE != "":
+        INPUT_FILE = Path(FILE)
+        if INPUT_FILE.exists():
+            ET = parse(FILE)
+            ROOT = ET.getroot()
+            if ROOT.tag == 'doc':
+                WIKI.root(ROOT)
+            else:
+                print("Invalid root type, must be 'doc', file: " + FILE)
         else:
-            print("Invalid root type, must be 'doc', file: " + FILE)
+            print("File: " + FILE + ", does not exist")
     else:
-        print("File: " + FILE + ", does not exist")
+        print("File required.")
