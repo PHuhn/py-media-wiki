@@ -3,6 +3,11 @@ import sys as Sys
 import io as IO
 from defusedxml.ElementTree import parse
 from pathlib import Path
+# Variable
+# .0 Initial commit
+# .1 Improved code output
+# .2 value tag handled
+VERSION = "1.0.2"
 # ============================================================================
 class CS2MediaWiki():
     """ class: Convert from .Net meta comments to Media Wiki
@@ -13,15 +18,25 @@ class CS2MediaWiki():
         <exception>*  <permission>*  <typeparam>*
         <include>*    <remarks>      <typeparamref>
         <list>        <returns>      <value>
+        Member types
+        N: namespace
+        T: type: class, interface, struct, enum, delegate
+        F: field
+        P: property
+        M: method
+        E: event
+        !: error string
 
         not handled
-        * value
-        * see
-        * seealso
+        * see,      ignored
+        * seealso,  ignored
         * typeparam
         * paramref
         * typeparamref
         * include
+        * permission
+        * E: event
+        * !: error string
     """
     name_space = ''
     class_name = ''
@@ -426,6 +441,11 @@ class CS2MediaWiki():
             ret += self.code_output(detail)
         elif detail_tag == "list":
             ret += self.list_output(detail)
+        elif detail_tag == 'value':
+            # <value>property-description</value>
+            elem_text = self.get_element_text(detail)
+            print(self.italic_text(elem_text))
+            ret += 1 + self.etc_details(detail, level)
         else:
             print(self.err_label, "unknown tag:", detail_tag)
         #
@@ -436,7 +456,7 @@ class CS2MediaWiki():
         ret = 0
         for detail in details:
             detail_tag = detail.tag
-            if detail_tag in ("summary", "returns", "exception", "remarks", "example", "para", "c", "code"):
+            if detail_tag in ("summary", "returns", "exception", "remarks", "example", "para", "c", "code", 'value'):
                 ret += self.etc_output(detail, level)
             elif detail_tag in ("param", "typeparam"):
                 pass    # handled and grouped in method_definition

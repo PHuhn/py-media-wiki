@@ -114,13 +114,21 @@ class MediawikiTests(unittest.TestCase):
         txt = self.wiki.get_member_attrib_name(member)
         self.assertEqual(txt, "Library.Helpers.GetStringApp(System.String)")
     #
-    def test_get_property_name_name_01(self):
+    def test_get_property_name_field_01(self):
         """ test method: get the class/method name from the attribute. """
         xml_string = '<member name="F:Library.ClassName.FieldName"></member>'
         self.wiki.full_class_name = "Library.ClassName"
         member = ET.fromstring(xml_string)
         txt = self.wiki.get_property_name(member)
         self.assertEqual(txt, "FieldName")
+    #
+    def test_get_property_name_prop_02(self):
+        """ test method: get the class/method name from the attribute. """
+        xml_string = '<member name="P:Library.ClassName.PropName"><summary>Prop Name<value>set/get string prop</value></summary></member>'
+        self.wiki.full_class_name = "Library.ClassName"
+        member = ET.fromstring(xml_string)
+        txt = self.wiki.get_property_name(member)
+        self.assertEqual(txt, "PropName")
     #
     def test_namespace_definition_01(self):
         """ test method: get the class/method name from the attribute. """
@@ -333,6 +341,13 @@ class MediawikiTests(unittest.TestCase):
         elem = ET.fromstring(xml_string)
         ret = self.wiki.etc_details(elem, 4)
         self.assertEqual(2, ret)
+    #
+    def test_etc_details_value(self):
+        """ test method: get the class/method name from the attribute. """
+        xml_string = '<member><summary>Prop Name<value>set/get string prop</value></summary></member>'
+        member = ET.fromstring(xml_string)
+        ret = self.wiki.etc_details(member, 4)
+        self.assertEqual(ret, 2)
 #
 if __name__ == '__main__':
     unittest.main()
