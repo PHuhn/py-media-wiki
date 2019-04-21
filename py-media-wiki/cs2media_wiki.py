@@ -86,6 +86,8 @@ class CS2MediaWiki():
         return "{0}{1}{0}".format(self.wiki_bold, text)
     #
     def text_left_trim(self, text):
+        if text == "":
+            return text
         if text[0] == '\n':
             text = text.lstrip('\n')
         handle = IO.StringIO(text)
@@ -95,6 +97,8 @@ class CS2MediaWiki():
         return ret_text.rstrip('\n')
     #
     def text_left_trunc(self, text, minus):
+        if text == "":
+            return text
         if text[0] == '\n':
             text = text.lstrip('\n')
         handle = IO.StringIO(text)
@@ -286,7 +290,7 @@ class CS2MediaWiki():
                 if count == 1:
                     print(self.header("Parameters", 5))
                 print(self.header(param.get('name'), 6))
-                print(param.text.lstrip())
+                print(self.get_element_text(param))
                 count += self.etc_details(param, 6) # summary description
         return count
     #
@@ -314,7 +318,7 @@ class CS2MediaWiki():
         # <returns>string of prefix followed by GUID and extent</returns>
         count = 0
         if ret_elem.tag == 'returns':
-            val = ret_elem.text or ""
+            val = self.get_element_text(ret_elem)
             print(self.header("Return Value", level))
             print(val.lstrip())
             if val != "":
@@ -357,8 +361,8 @@ class CS2MediaWiki():
                     descr = item.find("./description").text or ""
                 if list_type == "T":
                     if item.tag == "listheader":
-                        print("{0}{1}{2}{3}".format(self.wiki_table_hstart, term,
-                                                    self.wiki_table_hcell, descr))
+                        print("{0}{1}{2}{3}".format(self.wiki_table_hstart, self.bold_text(term),
+                                                    self.wiki_table_hcell, self.bold_text(descr)))
                     else:
                         print("{0}{1}{2}{3}".format(self.wiki_table_istart, term,
                                                     self.wiki_table_icell, descr))
@@ -390,10 +394,25 @@ class CS2MediaWiki():
         if elem.tag == 'code':
             # print("{0}\n{1}\n{2}".format(
             #     self.wiki_code_start, self.text_left_trunc(elem.text, 2), self.wiki_code_end))
-            print(self.wiki_code_start)
+            print()
             print(self.text_left_trunc(elem.text, 2))
+            print()
             ret = 1
         return ret
+    #
+    def note_output(self, note_elem, level):
+        """ method: ouput a note. """
+        # <note type="note">
+        #  'OrderBy' must be called before the method 'Skip'.
+        # </note>
+        count = 0
+        if note_elem.tag == 'note':
+            n_type = note_elem.get('type')
+            n_type = n_type[0].upper() + n_type[1:]
+            text = self.get_element_text(note_elem)
+            print(self.bold_text(n_type + ": ") + text)
+            count += 1 + self.etc_details(note_elem, level)
+        return count
     #
     # summary/remark/example/code/list
     def etc_output(self, detail, level):
@@ -417,23 +436,20 @@ class CS2MediaWiki():
             ret += self.etc_details(detail, level + 1)
         elif detail_tag == "remarks":
             # <remarks>Example: new EMail( from, to, "Subject", "Body").Send()</remarks>
-            text = detail.text
-            if text is None:
-                text = ""
-            else:
-                text = text.lstrip()
-            print("{0}Remarks:{0} {1}".format(self.wiki_bold, text))
+            text = self.get_element_text(detail)
+            print(self.bold_text("Remarks: ") + text)
             ret += 1 + self.etc_details(detail, level)
         elif detail_tag == "example":
             # <example>
             # This sample shows how to call this constructor.
             # <code> ... </code>
             # </example>
-            print("{0}For example:{0} {1}".format(self.wiki_bold, detail.text.lstrip()))
+            text = self.get_element_text(detail)
+            print(self.bold_text("For example: ") + text)
             ret += 1 + self.etc_details(detail, level)
         elif detail_tag == "para":
             # <remark><para>paragraph 1</para><para>paragraph 2</para></remark>
-            print(detail.text.lstrip())
+            print(self.get_element_text(detail))
             ret += 1 + self.etc_details(detail, level)
         elif detail_tag == "c":
             ret += self.c_output(detail)
@@ -446,6 +462,8 @@ class CS2MediaWiki():
             elem_text = self.get_element_text(detail)
             print(self.italic_text(elem_text))
             ret += 1 + self.etc_details(detail, level)
+        elif detail_tag == 'note':
+            ret += self.note_output(detail, level)
         else:
             print(self.err_label, "unknown tag:", detail_tag)
         #
@@ -456,7 +474,7 @@ class CS2MediaWiki():
         ret = 0
         for detail in details:
             detail_tag = detail.tag
-            if detail_tag in ("summary", "returns", "exception", "remarks", "example", "para", "c", "code", 'value'):
+            if detail_tag in ("summary", "returns", "exception", "remarks", "example", "para", "c", "code", 'value', 'note'):
                 ret += self.etc_output(detail, level)
             elif detail_tag in ("param", "typeparam"):
                 pass    # handled and grouped in method_definition

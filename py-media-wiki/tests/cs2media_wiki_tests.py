@@ -342,12 +342,37 @@ class MediawikiTests(unittest.TestCase):
         ret = self.wiki.etc_details(elem, 4)
         self.assertEqual(2, ret)
     #
-    def test_etc_details_value(self):
+    def test_etc_details_value_01(self):
         """ test method: get the class/method name from the attribute. """
         xml_string = '<member><summary>Prop Name<value>set/get string prop</value></summary></member>'
         member = ET.fromstring(xml_string)
         ret = self.wiki.etc_details(member, 4)
         self.assertEqual(ret, 2)
+    #
+    def test_etc_details_value_02(self):
+        """ test method: get the class/method name from the attribute. """
+        xml_string = """<member><summary>Returns the number of times Counter was called.</summary>
+            <value>Number of times Counter was called.</value>
+            </member>"""
+        member = ET.fromstring(xml_string)
+        ret = self.wiki.etc_details(member, 4)
+        self.assertEqual(ret, 2)
+    #
+    def test_etc_details_note_01(self):
+        """ test method: get the class/method name from the attribute. """
+        xml_string = """<member><note type="note">
+         'OrderBy' must be called before the method 'Skip'.
+        </note></member>"""
+        member = ET.fromstring(xml_string)
+        ret = self.wiki.etc_details(member, 4)
+        self.assertEqual(ret, 1)
+    #
+    def test_etc_details_note_02(self):
+        """ test method: get the class/method name from the attribute. """
+        xml_string = """<member><note type="empty"></note></member>"""
+        member = ET.fromstring(xml_string)
+        ret = self.wiki.etc_details(member, 4)
+        self.assertEqual(ret, 1)
 #
 if __name__ == '__main__':
     unittest.main()
