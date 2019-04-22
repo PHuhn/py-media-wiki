@@ -10,7 +10,7 @@ class MediawikiTests(unittest.TestCase):
     def setUp(self):
         self.wiki = cs2media_wiki.CS2MediaWiki()
         self.wiki.name_space = ""
-        self.member01 = """<member name="M:NSG.Library.Helpers.Config.GetIntAppSettingConfigValue(System.String,System.Int32)">
+        self.member01 = """<member name="M:Library.Helpers.Config.GetIntAppSettingConfigValue(System.String,System.Int32)">
             <summary>
             Get a value from the AppSetting section of the web config.
             </summary>
@@ -23,6 +23,27 @@ class MediawikiTests(unittest.TestCase):
         The <see cref="N:Library.Helpers"/> namespace contains a
         collection of static helper methods.
         </summary></member>"""
+        # public static IQueryable<T> LazyOrderBy<T>(this IQueryable<T> qry, LazyLoadEvent lle)
+        self.method01 = """<member name="M:PrimeNG.LazyLoading.Helpers.LazyOrderBy``1(System.Linq.IQueryable{``0},PrimeNG.LazyLoading.LazyLoadEvent)">
+            <summary>summary</summary>
+            <typeparam name="T"></typeparam>
+            <param name="qry"></param>
+            <param name="lle"></param></member>"""
+        # private static Expression<Func<TEntity, bool>>
+        #   LazyDynamicFilterExpression<TEntity>(
+        #     string propertyName, string op, string value, Type valueType)
+        self.method02 = """<member name="M:PrimeNG.LazyLoading.Helpers.LazyDynamicFilterExpression``1(System.String,System.String,System.String,System.Type)">
+            <summary>summary</summary>
+            <typeparam name="TEntity"></typeparam>
+            <param name="propertyName">.</param>
+            <param name="op">.</param>
+            <param name="value">.</param>
+            <param name="valueType">.</param></member>"""
+        # public static IEnumerable<T> GetValues<T>(this Type enumType)
+        self.method03 = """<member name="M:System.Extensions.GetValues``1(System.Type)">
+            <summary>summary</summary>
+            <typeparam name="T">.</typeparam>
+            <param name="enumType">.</param></member>"""
     #
     def test_header_1(self):
         """ test method: process child assembly, making it a level 1 header. """
@@ -187,6 +208,56 @@ class MediawikiTests(unittest.TestCase):
         member = ET.fromstring(xml_string)
         ret = self.wiki.class_label_definition(member, 'Props', 3, 1)
         self.assertEqual(ret, 1)
+    #
+    def test_get_param_names_01(self):
+        """ test method: getting an array of param names. """
+        member = ET.fromstring(self.method01)
+        ret = self.wiki.get_param_names(member)
+        self.assertEqual(ret, ['', 'T', 'qry', 'lle'])
+    #
+    def test_get_param_names_02(self):
+        """ test method: getting an array of param names. """
+        member = ET.fromstring(self.method02)
+        ret = self.wiki.get_param_names(member)
+        self.assertEqual(ret, ['', 'TEntity', 'propertyName', 'op', 'value', 'valueType'])
+    #
+    def test_get_param_names_03(self):
+        """ test method: getting an array of param names. """
+        member = ET.fromstring(self.method03)
+        ret = self.wiki.get_param_names(member)
+        self.assertEqual(ret, ['', 'T', 'enumType'])
+    #
+    def test_reconstruct_method_01(self):
+        """ test method: getting a method name with ``1 translated to <T>. """
+        member = ET.fromstring(self.method01)
+        self.wiki.full_class_name = "PrimeNG.LazyLoading.Helpers"
+        member_name = self.wiki.get_property_name(member)
+        ret = self.wiki.reconstruct_method(member, member_name)
+        self.assertEqual(ret, "LazyOrderBy&lt;T&gt;(System.Linq.IQueryable&lt;T&gt;,PrimeNG.LazyLoading.LazyLoadEvent)")
+    #
+    def test_reconstruct_method_02(self):
+        """ test method: getting a method name with ``1 translated to <T>. """
+        member = ET.fromstring(self.method02)
+        self.wiki.full_class_name = "PrimeNG.LazyLoading.Helpers"
+        member_name = self.wiki.get_property_name(member)
+        ret = self.wiki.reconstruct_method(member, member_name)
+        self.assertEqual(ret, "LazyDynamicFilterExpression&lt;TEntity&gt;(System.String,System.String,System.String,System.Type)")
+    #
+    def test_reconstruct_method_03(self):
+        """ test method: getting a method name with ``1 translated to <T>. """
+        member = ET.fromstring(self.method03)
+        self.wiki.full_class_name = "PrimeNG.LazyLoading.Helpers"
+        member_name = self.wiki.get_property_name(member)
+        ret = self.wiki.reconstruct_method(member, member_name)
+        self.assertEqual(ret, "System.Extensions.GetValues&lt;T&gt;(System.Type)")
+    #
+    def test_reconstruct_method_04(self):
+        """ test method: getting a method name with ``1 translated to <T>. """
+        member = ET.fromstring(self.member01)
+        self.wiki.full_class_name = "Library.Helpers.Config"
+        member_name = self.wiki.get_property_name(member)
+        ret = self.wiki.reconstruct_method(member, member_name)
+        self.assertEqual(ret, "GetIntAppSettingConfigValue(System.String,System.Int32)")
     #
     def test_method_definition(self):
         """ test method: define a class and output it's summary. """

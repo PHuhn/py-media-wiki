@@ -7,7 +7,8 @@ from pathlib import Path
 # .0 Initial commit
 # .1 Improved code output
 # .2 value tag handled
-VERSION = "1.0.2"
+# .3 ``1 to <T>
+VERSION = "1.0.3"
 # ============================================================================
 class CS2MediaWiki():
     """ class: Convert from .Net meta comments to Media Wiki
@@ -250,6 +251,34 @@ class CS2MediaWiki():
         # print("\n\n{0}\n\n".format(self.wiki_hr))
         return ret
     #
+    def get_param_names(self, member):
+        """ method: get all parameter names and store in an array """
+        p_names = []
+        p_names.append("")  # zeroth (the method name)
+        for param in member:
+            if (param.tag == 'param') or (param.tag == 'typeparam'):
+                p_names.append(param.get('name'))
+        return p_names
+    #
+    def reconstruct_method(self, member, method_name):
+        """ method: reconstruct the method """
+        p_names = self.get_param_names(member)
+        fnd = method_name.find("``")
+        while fnd > -1:
+            indx = int(method_name[fnd + 2])
+            if method_name[fnd-1] == "{":
+                if indx == 0:
+                    t_type = "&lt;" + p_names[1] + "&gt;"
+                    method_name = method_name[:fnd-1] + t_type + method_name[fnd + 4:]
+                else:
+                    return method_name
+            else:
+                t_type = "&lt;" + p_names[indx] + "&gt;"
+                method_name = method_name[:fnd] + t_type + method_name[fnd + 3:]
+            fnd = method_name.find("``")
+        #
+        return method_name
+    #
     def method_definition(self, member):
         """ method: extract and ouput a members summary.
         """
@@ -273,6 +302,7 @@ class CS2MediaWiki():
             if self.mthd_flg == 0:
                 print(self.header("Methods", 3))
             self.mthd_flg += 1
+        method_name = self.reconstruct_method(member, method_name)
         print(self.header(method_name, 4))
         ret = self.method_parameters(member)
         ret += self.etc_details(member, 5) # summary description
@@ -283,7 +313,6 @@ class CS2MediaWiki():
         """ method: extract and ouput all method parameters. """
         # <param name="fullFilePathAndName">full path and file name</param>
         count = 0
-        # for parm in member.findall('param'):
         for param in member:
             if (param.tag == 'param') or (param.tag == 'typeparam'):
                 count += 1
@@ -489,7 +518,7 @@ class CS2MediaWiki():
 if __name__ == '__main__':
     #
     WIKI = CS2MediaWiki()
-    USAGE = "Usage: {0} <XML file>".format(Sys.argv[0])
+    USAGE = "\nVersion {0}\n\nUsage: {1} <XML file>".format(VERSION, Sys.argv[0])
     ARGC = len(Sys.argv)
     FILE = "" # "./data/Library.Email.xml"
     if ARGC == 2:
