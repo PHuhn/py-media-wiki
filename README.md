@@ -11,6 +11,9 @@ To execute from the command line, converting Library.xml as follows:
 ```
 Make sure the text is flush left except for code.  Code is indented two spaces. This script processes the comments as an XML document.
 
+#### Note
+The python code was created in Visual Studio.
+
 ### CS2Wiki.awk
 To execute from the batch file, converting Library.xml as follows:
 ```
@@ -27,3 +30,4 @@ Check these Wiki pages for examples:
 - [NSG.Library.Logger](https://github.com/PHuhn/NSG.Library/wiki/NSG.Library.Logger),
 - [NSG.Library.EMail](https://github.com/PHuhn/NSG.Library/wiki/NSG.Library.EMail),
 - [NSG.PrimeNG](https://github.com/PHuhn/NSG.PrimeNG/wiki).
+

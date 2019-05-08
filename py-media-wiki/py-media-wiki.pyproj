@@ -34,6 +34,7 @@
     <Content Include="data\Library.Helpers.xml" />
     <Content Include="data\Library.Logger.xml" />
     <Content Include="data\logger_wiki.md" />
+    <Content Include="data\PrimeNG.LazyLoading.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
