@@ -189,8 +189,9 @@ class CS2MediaWiki():
         member_name = member.attrib.get('name')[2:]
         ns_len = len(self.name_space)
         if ns_len > 0:
-            if self.name_space == member_name[:ns_len]:
-                member_name = member_name[ns_len + 1:]
+            if ns_len != len(member_name):
+                if self.name_space == member_name[:ns_len]:
+                    member_name = member_name[ns_len + 1:]
         return member_name
     #
     def get_property_name(self, member):
@@ -261,7 +262,10 @@ class CS2MediaWiki():
         return p_names
     #
     def reconstruct_method(self, member, method_name):
-        """ method: reconstruct the method """
+        """ method: reconstruct the method
+        dealing with the following:
+         IQueryable<T> LazyOrderBy<T>(this IQueryable<T> qry, LazyLoadEvent lle)
+        """
         p_names = self.get_param_names(member)
         fnd = method_name.find("``")
         while fnd > -1:
@@ -277,6 +281,16 @@ class CS2MediaWiki():
                 method_name = method_name[:fnd] + t_type + method_name[fnd + 3:]
             fnd = method_name.find("``")
         #
+        return method_name
+    #
+    def cleanup_system_method(self, method_name):
+        """ method: reconstruct the method
+        dealing with the following:
+            <member name="M:MimeKit.Extensions.From(MimeKit.MimeMessage,System.String,System.String)">
+        to:
+            From(MimeKit.MimeMessage, String, String)
+        """
+        method_name = method_name.replace(",System.", ", ").replace("(System.", "(").replace("," + self.name_space + ".", ", ").replace("(" + self.name_space + ".", "(")
         return method_name
     #
     def method_definition(self, member):
@@ -303,9 +317,10 @@ class CS2MediaWiki():
                 print(self.header("Methods", 3))
             self.mthd_flg += 1
         method_name = self.reconstruct_method(member, method_name)
+        method_name = self.cleanup_system_method(method_name)
         print(self.header(method_name, 4))
-        ret = self.method_parameters(member)
-        ret += self.etc_details(member, 5) # summary description
+        ret = self.etc_details(member, 5) # summary description
+        ret += self.method_parameters(member)
         print("\n\n{0}\n\n".format(self.wiki_hr))
         return ret
     #
@@ -321,6 +336,8 @@ class CS2MediaWiki():
                 print(self.header(param.get('name'), 6))
                 print(self.get_element_text(param))
                 count += self.etc_details(param, 6) # summary description
+            elif param.tag == 'returns':
+                count += self.return_output(param, 5)
         return count
     #
     def exception_output(self, excpt, level):
@@ -503,9 +520,9 @@ class CS2MediaWiki():
         ret = 0
         for detail in details:
             detail_tag = detail.tag
-            if detail_tag in ("summary", "returns", "exception", "remarks", "example", "para", "c", "code", 'value', 'note'):
+            if detail_tag in ("summary", "exception", "remarks", "example", "para", "c", "code", 'value', 'note'):
                 ret += self.etc_output(detail, level)
-            elif detail_tag in ("param", "typeparam"):
+            elif detail_tag in ("param", "typeparam", "returns"):
                 pass    # handled and grouped in method_definition
             elif detail_tag  in ("see", "seealso"):
                 pass    # ignore these, of no service in wiki

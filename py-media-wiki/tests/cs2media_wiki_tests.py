@@ -114,6 +114,25 @@ class MediawikiTests(unittest.TestCase):
         ret = self.wiki.root(doc)
         self.assertEqual(ret, 6)
     #
+    def test_root_02(self):
+        """ test method: define a class and output it's summary. """
+        xml_string = '''<?xml version="1.0"?>
+        <doc><assembly><name>MimeKit.Extensions</name></assembly>
+        <members>
+        <member name="T:MimeKit.NamespaceDoc">
+            <summary>Namespace of MimeKit</summary>
+        </member>
+        <member name="T:MimeKit.Extensions">
+            <summary>Fluent extension methods in the MimeKit library.</summary>
+        </member>
+        <member name="M:MimeKit.Extensions.From(MimeKit.MimeMessage,System.String)">
+            <summary>From email address.</summary>
+        </member>
+        </members></doc>'''
+        root = ET.fromstring(xml_string)
+        ret = self.wiki.root(root)
+        self.assertEqual(ret, 4)
+    #
     def test_assembly_name_01(self):
         """ test method: process child assembly, making it a level 1 header. """
         assm = ET.fromstring("<assembly><name>Library.Logger</name></assembly>")
@@ -134,6 +153,16 @@ class MediawikiTests(unittest.TestCase):
         member = ET.fromstring(xml_string)
         txt = self.wiki.get_member_attrib_name(member)
         self.assertEqual(txt, "Library.Helpers.GetStringApp(System.String)")
+    #
+    def test_get_member_attrib_name_03(self):
+        """ test method: define a class and output it's summary. """
+        xml_string = '''<member name="T:Stuff.Extensions">
+            <summary>Fluent extension methods in the MimeKit library.</summary>
+        </member>'''
+        member = ET.fromstring(xml_string)
+        self.wiki.name_space = "Stuff.Extensions"
+        attrib_name = self.wiki.get_member_attrib_name(member)
+        self.assertEqual(attrib_name, "Stuff.Extensions")
     #
     def test_get_property_name_field_01(self):
         """ test method: get the class/method name from the attribute. """
@@ -259,12 +288,56 @@ class MediawikiTests(unittest.TestCase):
         ret = self.wiki.reconstruct_method(member, member_name)
         self.assertEqual(ret, "GetIntAppSettingConfigValue(System.String,System.Int32)")
     #
+    def test_cleanup_system_method_01(self):
+        """ test method: cleaning a method name of extra variable data type. """
+        method = "From(MimeKit.MimeMessage,System.String,System.String)"
+        self.wiki.name_space = ""
+        ret = self.wiki.cleanup_system_method(method)
+        self.assertEqual(ret, "From(MimeKit.MimeMessage, String, String)")
+    #
+    def test_cleanup_system_method_02(self):
+        """ test method: cleaning a method name of extra variable data type. """
+        method = "From(MimeKit.MimeMessage,System.String,System.String)"
+        self.wiki.name_space = "MimeKit"
+        ret = self.wiki.cleanup_system_method(method)
+        self.assertEqual(ret, "From(MimeMessage, String, String)")
+    #
+    def test_cleanup_system_method_03(self):
+        """ test method: cleaning a method name of extra variable data type. """
+        method = "From(MimeKit.MimeMessage,System.String,System.String)"
+        self.wiki.name_space = "MimeKit.Extensions"
+        ret = self.wiki.cleanup_system_method(method)
+        self.assertEqual(ret, "From(MimeKit.MimeMessage, String, String)")
+    #
     def test_method_definition(self):
         """ test method: define a class and output it's summary. """
         xml_string = '<member name="M:Config"><summary>1</summary><param name="2">2</param><param name="3">3</param><returns>4</returns><exception cref="System.Exception">5</exception></member>'
         member = ET.fromstring(xml_string)
         ret = self.wiki.method_definition(member)
         self.assertEqual(ret, 5)
+    #
+    def test_method_sendasync_definition(self):
+        """ test method: define a class and output it's summary. """
+        xml_string = '''<member name="M:MimeKit.Extensions.SendAsync(MimeKit.MimeMessage)">
+            <summary>
+            Asynchronously send a (this) MimeMessage via the MailKit's SmtpClient.
+            <note type="note">
+            This will invoke the following method:
+            SendAsync(this mimeMessage, smtpHost, port, ssl, userName, passWord)
+            </note>
+            This invocation assumes the following parameters:
+            <list type="bullet">
+            <item><description>A userName of empty string.</description></item>
+            <item><description>A passWord of empty string.</description></item>
+            </list>
+            </summary>
+            <param name="mimeMessage">This MimeMessage.</param>
+            <returns>this, MimeMessage to allow fluent design.</returns>
+        </member>'''
+        member = ET.fromstring(xml_string)
+        self.wiki.full_class_name = "MimeKit.Extensions"
+        ret = self.wiki.method_definition(member)
+        self.assertEqual(ret, 6)
     #
     def test_return_output_found(self):
         """ test method: for method_return """
@@ -294,7 +367,7 @@ class MediawikiTests(unittest.TestCase):
         """ test method: for method_return """
         member = ET.fromstring(self.member01)
         ret = self.wiki.method_parameters(member)
-        self.assertEqual(2, ret)
+        self.assertEqual(3, ret)
     #
     def test_exception_output_01(self):
         """ test method: extract and ouput an exception. """
