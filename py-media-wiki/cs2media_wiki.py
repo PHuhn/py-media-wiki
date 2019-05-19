@@ -8,7 +8,7 @@ from pathlib import Path
 # .1 Improved code output
 # .2 value tag handled
 # .3 ``1 to <T>
-VERSION = "1.0.3"
+VERSION = "1.0.4"
 # ============================================================================
 class CS2MediaWiki():
     """ class: Convert from .Net meta comments to Media Wiki
