@@ -8,7 +8,7 @@ from pathlib import Path
 # .1 Improved code output
 # .2 value tag handled
 # .3 ``1 to <T>
-VERSION = "1.0.4"
+VERSION = "1.0.5"
 # ============================================================================
 class CS2MediaWiki():
     """ class: Convert from .Net meta comments to Media Wiki
@@ -57,8 +57,8 @@ class CS2MediaWiki():
     wiki_table_hcell = '!!'
     wiki_table_istart = '|'
     wiki_table_icell = '||'
-    wiki_code_start = '  -code-'
-    wiki_code_end = '  -end code-'
+    wiki_code_start = '<source lang="csharp">'
+    wiki_code_end = '</source>'
     wiki_inlinecode_start = '<code>'
     wiki_inlinecode_end = '</code>'
     #
@@ -438,13 +438,20 @@ class CS2MediaWiki():
         # </code>
         ret = 0
         if elem.tag == 'code':
-            # print("{0}\n{1}\n{2}".format(
-            #     self.wiki_code_start, self.text_left_trunc(elem.text, 2), self.wiki_code_end))
-            print()
-            print(self.text_left_trunc(elem.text, 2))
-            print()
+            print(self.wiki_code_start)
+            print(self.text_left_trunc(elem.text, 0))
+            print(self.wiki_code_end)
             ret = 1
         return ret
+    #
+    def bold_label_text(self, label, text):
+        """ method: ouput a note/example/remark. """
+        return "{0} {1}".format(self.bold_text(label), text)
+    #
+    def bold_label_output(self, label, text):
+        """ method: ouput a note/example/remark. """
+        print("\n{0}".format(self.bold_label_text(label, text)))
+        return 1
     #
     def note_output(self, note_elem, level):
         """ method: ouput a note. """
@@ -456,7 +463,7 @@ class CS2MediaWiki():
             n_type = note_elem.get('type')
             n_type = n_type[0].upper() + n_type[1:]
             text = self.get_element_text(note_elem)
-            print(self.bold_text(n_type + ": ") + text)
+            self.bold_label_output(n_type + ":", text)
             count += 1 + self.etc_details(note_elem, level)
         return count
     #
@@ -483,7 +490,7 @@ class CS2MediaWiki():
         elif detail_tag == "remarks":
             # <remarks>Example: new EMail( from, to, "Subject", "Body").Send()</remarks>
             text = self.get_element_text(detail)
-            print(self.bold_text("Remarks: ") + text)
+            self.bold_label_output("Remarks:", text)
             ret += 1 + self.etc_details(detail, level)
         elif detail_tag == "example":
             # <example>
@@ -491,7 +498,7 @@ class CS2MediaWiki():
             # <code> ... </code>
             # </example>
             text = self.get_element_text(detail)
-            print(self.bold_text("For example: ") + text)
+            self.bold_label_output("For example:", text)
             ret += 1 + self.etc_details(detail, level)
         elif detail_tag == "para":
             # <remark><para>paragraph 1</para><para>paragraph 2</para></remark>

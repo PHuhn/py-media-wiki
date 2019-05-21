@@ -479,6 +479,17 @@ class MediawikiTests(unittest.TestCase):
         ret = self.wiki.etc_output(elem, 4)
         self.assertEqual(3, ret)
     #
+    def test_bold_label_text(self):
+        """ test method: ouput a remarks/example. """
+        expected = """'''For example:''' some text"""
+        ret = self.wiki.bold_label_text("For example:", "some text")
+        self.assertEqual(expected, ret)
+    #
+    def test_bold_label_output(self):
+        """ test method: ouput a remarks/example. """
+        ret = self.wiki.bold_label_output("For example:", "some text")
+        self.assertEqual(1, ret)
+    #
     def test_etc_details(self):
         """ test method: ouput a remarks/code/list/example. """
         xml_string = """<remarks><para>paragraph 1</para><para>paragraph 2</para></remarks>"""
